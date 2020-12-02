@@ -1,0 +1,198 @@
+字符函数和字符串函数 11.22
+
+一、关于'\0'
+1、'\0'在字符串中表示结束，如果其位置未知，会造成字符串长度为随机值。
+2、'\0'==0。其可转义为数字，以下两段语句的运行结果一致。
+char ch = '\5';  
+char ch1 = 5;
+
+二、字符串长度：strlen
+1、从MSDN中，搜索"strlen"的表示为"size_t strlen( const char *string )"，加入自己创建的函数名，即"size_t my_strlen( const char *string )"。注：此函数的返回值为size_t，其无符号。
+2、由于此函数的参数中含有指针，需要引用断言"assert"，插入语句"assert(string != NULL);"即指针不能为空（NULL），检查函数的合法性。
+3、此函数的返回值为size_t，其无符号。所以，定义的指针形式应该与其一致。
+4、此函数中，我们不需要用原有的函数，则需要对指针进行参数保护，建立一个临时指针"const char *p_str = string;"。
+代码如下：
+size_t my_strlen( const char *string )
+{
+	assert(string != NULL);  
+	size_t len = 0;
+	const char *p_str = string; 
+
+	return len;
+}
+
+5、运用while函数，也可以将"++"加到条件语句"p_str"后，以下两种都可运行，结果一致，代码如下：
+while(*p_str++ != '\0')
+	{
+		len++;         
+	}
+while(*p_str!= '\0')
+	{
+                                len++;
+		p_str++;
+	}
+源代码如下：
+size_t my_strlen(const char *string)
+{
+	assert(string != NULL);  
+	size_t len = 0;
+	const char *p_str = string; 
+
+	while (*p_str++ != '\0')
+	{
+		len++;
+	}
+	return len;
+}
+void main()
+{
+	char *str = "xinxin";
+	printf("len = %d\n", my_strlen(str));
+}
+	
+6、如果要求不允许使用第三方变量，即不能使用"len"，则需要运用递归。代码如下：
+size_t my_strlen(const char *string)
+{
+	if (*string == '\0')
+		return 0;
+	else
+		return my_strlen(string + 1) + 1;
+}
+void main()
+{
+	char *str = "xinxin";
+	printf("len = %d\n", my_strlen(str));
+}
+
+运行结果，如图所示：
+
+三、长度不受限制的字符串函数
+1、字符串拷贝函数：strcpy，将str2拷贝到str1中。
+1）从MSDN中，搜索"strcpy"的表示为"char *strcpy(char *strDestination, const char *strSource)"，加入自己创建的函数名，即"char *my_strcpy(char *strDest, const char*strSrc)"。
+2）在strcpy函数中，str1不能和str2同为指针，字符串不能覆盖原有的常量字符串，这里我们定义str1为数组，创建自己的空间。
+void...
+
+3）str2中的"\0"也要一并拷贝过去。
+4）返回值为"char *"，则之后的访问也可以用对应的指针代替，通过接收返回值的结果得到运行结果。
+*入参和出参：形参的修改不影响实参，传地址才能改变实参。
+5）依旧需要检查函数的合法性，并且要对参数进行保护，使指针指向的首地址不随函数的执行而变化。
+char...
+
+6）目标空间(str1)必须足够大且可变，以确保能存放源字符串(str2)。
+源代码如下：
+运行结果，如图所示：
+
+2、字符串连接函数：strcat，将str2连接到str1后。
+1）目标空间(str1)必须足够大、可修改，能容纳下源字符串(str2)的内容。
+2）需要检查函数的合法性，并且要对参数进行保护，使指针指向的首地址不随函数的执行而变化。
+char...
+
+3）str2要从str1中的"\0"位置开始拷贝：
+先查找Dest字符串的末尾 	
+	while (*pDest != '\0')
+		pDest++ ;
+实行连接拷贝
+while (*pSrc != '\0')
+	{
+		*pDest++ = *pSrc++;
+	}
+增加结束标记，单独拷贝'\0' 	*pDest = '\0';
+4）字符串自己给自己追加，永远找不到'\0'，会造成死循环。
+
+源代码如下：
+运行结果，如图所示：
+
+3、字符串比较函数：strcmp，比较两个字符串的大小。
+1）需要检查函数的合法性，并且要对参数进行保护，使指针指向的首地址不随函数的执行而变化。
+2）该函数的返回值为int，因此接收时为"int ret = my_strcmp(str1, str2);"
+3）小于0时，str1<str2；等于0时，str1=str2；大于0时，str1>str2。
+...
+源代码如下：
+运行结果，如图所示：
+
+四、长度受限制的字符串函数
+1、strncmp：比较两个字符串中指定部分（前n个字符）的大小。
+1）与strcmp相比，需要加入长度常量"size_t count"，即"int my_strncmp( const char *string1, const char *string2, size_t count )"。
+int....
+2）此函数只需比较到指定部分的结尾处，因此循环条件为"while (--count > 0)"。
+while...
+
+源代码如下：
+运行结果，如图所示：
+
+2、strncat：将str2中的指定部分连接到str1后。
+1）同样，需要加入长度常量"size_t count"。
+2）实行连接拷贝时，循环条件改为"while (count-- > 0)"。
+3）模拟实现的函数中，要在末尾单独加上'\0'，否则会出现随机数。
+while....
+
+源代码如下：
+运行结果，如图所示：
+
+3、strncpy：将str2中的指定部分拷贝到str1中。
+1）与strncat一致，需要加入长度常量"size_t count"，循环条件改为"while (count-- > 0)"。
+2）模拟实现的函数中，要在末尾单独加上'\0'，否则拷贝完成的字符串中会出现str1的后部分。
+源代码如下：
+运行结果，如图所示：
+
+五、字符串查找
+1、strstr：在str1中查找str2是否存在。
+模式匹配：在某字符串中，查找是否存在一个子字符串的过程。
+若str2为空，则将str1全部返回。  char *str2 = ""; //ret=xin0127
+源代码如下：
+运行结果，如图所示：
+
+2、strtok：分割函数 11.29
+从左边第一个不是分隔符的字符开始，若想同一个字符串中继续分割，则需要传空NULL。
+分隔符可以有多种
+更改 提取字符串内部，字符串可更改，则需要创建自己的空间，静态
+源代码如下：
+运行结果，如图所示：
+
+六、错误信息报告：strerror
+1、所打开的文件（即Test.txt）必须存在
+2、errno为全局变量，运用语句"strerror(errno)"时，头文件必须包含"#include<errno.h>"，可打印出具体的错误信息。
+源代码如下：
+运行结果，如图所示：
+
+七、字符转换
+以小写字母转换成大写为例（to_upper函数）：
+需要排除原有的字符串中是否已经含有大写字母，加入条件
+if (islower(*str))。。。32
+源代码如下：
+运行结果，如图所示：
+
+八、内存操作函数：通过内存方式进行操作，不止限于字符串，不考虑其类型(void)，通过每个字节进行操作。
+1、内存设置（初始化）函数：memset
+1）"void *memset(void *dest, int c, size_t count)"中：
+"*dest"指明首地址，即从哪开始；"int c"表明拿什么进行初始化；"size_t count"表示初始化多少个字节（挨个字节进行操作）。
+"memset(br, 0, sizeof(int)*10)"中表示从br开始，拿“0”初始化10个字节。
+2）模拟实现：检查函数的合法性，并且对参数进行保护。
+源代码如下：
+
+2、内存拷贝函数：memcpy
+1）"memcpy(br, ar, sizeof(int)*10)"中： "br"为目标字符串，"ar"为原始字符串，"sizeof(int)*10"表示拷贝40(4*10)个字节。
+2）模拟实现：检查函数的合法性，并且对参数进行保护。
+源代码如下：
+运行结果，如图所示：
+
+3）在同一个字符串中进行拷贝
+源代码如下：
+运行结果，如图所示：
+
+如果要考虑内存的重叠，覆盖，即"my_memcpy(str + 2, str, 4)"
+源代码如下：
+运行结果，如图所示：
+
+当出现内存的重叠，覆盖时，更推荐使用memmove函数。
+
+3、内存比较函数：memcmp
+1）"int flag = memcmp(ar, br, sizeof(int)*6)"表示将ar和br进行比较，比较5个整型。
+2）模拟实现：检查函数的合法性，并且对参数进行保护。
+源代码如下：
+运行结果，如图所示：
+
+4、内存移动函数：memmove
+如果源空间和目标空间出现重叠，就可使用memmove函数处理。
+源代码如下：
+运行结果，如图所示：
